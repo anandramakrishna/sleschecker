@@ -2,7 +2,7 @@
 
 FNIC_GOLDEN_VERSION="1.6.0.27"
 ENIC_GOLDEN_VERSION="2.3.0.30"
-KERNEL_GOLDEN_VERSION="3.12.49-11"
+KERNEL_GOLDEN_VERSION="3.12.49-11-default"
 
 VERSION=$(sudo modinfo fnic | grep -G "^version:" | awk -F:       '{print $2}')
 
