@@ -22,7 +22,7 @@ fi
 
 VERSION=$(uname -r)
 
-if [ $VERSION != KERNEL_GOLDEN_VERSION ]; then
+if [ $VERSION != $KERNEL_GOLDEN_VERSION ]; then
     echo ERROR! Unexpected kernel version found.  Found: $VERSION, Expected: $KERNEL_GOLDEN_VERSION
 else
     echo Expected kernel $VERSION found.
