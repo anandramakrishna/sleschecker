@@ -35,6 +35,30 @@ function init
     done
 }
 
+function checkKernelCmdLine
+{
+    cmdArg=$1
+    OUTPUT=$(cat /proc/cmdline | grep $cmdArg)
+    if [ ! "$OUTPUT" ]; then
+        logError "Did not found $cmdArg in kernel cmdline"
+    else
+        logInfo "Found $cmdArg in kernel cmdline"
+    fi
+}
+
+function checkProcValue
+{
+    procPath=$1
+    expected=$2
+
+    value=$(cat $procPath)
+    if [ "$value" != "$expected" ]; then
+        logError "Illegal value for $procPath.  Found: $value, Expected: $expected"
+    else
+        logInfo "$procPath is set to $expected"
+    fi
+}
+
 init $@
 
 VERSION=$(sudo modinfo fnic | grep -G "^version:" | awk -F:       '{print $2}')
@@ -83,36 +107,37 @@ echo "$OUTPUT"
 let FAILURECNT=FAILURECNT+$(echo "$OUTPUT" | grep "ERROR!" | wc -l)
 
 # Make sure NUMA_BALANCING is disabled in kernel cmdline
-OUTPUT=$(cat /proc/cmdline | grep numa_balancing=disable)
-if [ ! "$OUTPUT" ]; then
-    logError "numa_balancing is not disabled in kernel cmdline"
-else
-    logInfo "Found numa_balancing is disabled in kernel cmdline"
-fi
+checkKernelCmdLine "numa_balancing=disable"
 
 # Make sure transparent hugepages are disabled
-OUTPUT=$(cat /proc/cmdline | grep "transparent_hugepage=never")
-if [ ! "$OUTPUT" ]; then
-    logError "transparent_hugepage is not disabled in kernel cmdline"
-else
-    logInfo "Found transparent_hugepage disabled in kernel cmdline"
-fi
+checkKernelCmdLine "transparent_hugepage=never"
 
 #Make sure max_cstate is set to 1
-OUTPUT=$(cat /proc/cmdline | grep "intel_idle.max_cstate=1")
-if [ ! "$OUTPUT" ]; then
-    logError "intel_idle.maxcstate is not set to 1 in kernel cmdline"
-else
-    logInfo "Found intel_idle.maxcstate set to 1 in kernel cmdline"
-fi
+checkKernelCmdLine "intel_idle.max_cstate=1"
 
 #Make sure page cache limit is set to 0 (default)
-OUTPUT=$(cat /proc/sys/vm/pagecache_limit_mb)
-if [ $OUTPUT != "0" ]; then
-    logError "/proc/sys/vm/pagecache_limit_mb is not 0"
-else
-    logInfo "pagecache_limit_mb is set to 0"
-fi
+checkProcValue "/proc/sys/vm/pagecache_limit_mb" 0
+
+#Check a bunch of stuff from proc/sys
+checkProcValue "/proc/sys/net/ipv4/tcp_slow_start_after_idle" 0
+checkProcValue "/proc/sys/net/ipv4/tcp_rmem" "65536 16777216 16777216"
+checkProcValue "/proc/sys/net/ipv4/tcp_wmem" "65536 16777216 16777216"
+checkProcValue "/proc/sys/net/ipv4/tcp_no_metrics_save" 1
+checkProcValue "/proc/sys/net/ipv4/tcp_moderate_rcvbuf" 1
+checkProcValue "/proc/sys/net/ipv4/tcp_window_scaling" 1
+checkProcValue "/proc/sys/net/ipv4/tcp_timestamps" 1
+checkProcValue "/proc/sys/net/ipv4/tcp_sack" 1
+checkProcValue "/proc/sys/net/ipv4/tcp_max_syn_backlog" 8192
+
+checkProcValue "/proc/sys/sunrpc/tcp_slot_table_entries" 128
+
+checkProcValue "/proc/sys/net/core/rmem_max" 16777216
+checkProcValue "/proc/sys/net/core/wmem_max" 16777216
+checkProcValue "/proc/sys/net/core/rmem_default" 16777216
+checkProcValue "/proc/sys/net/core/wmem_default" 16777216
+checkProcValue "/proc/sys/net/core/optmem_max" 16777216
+checkProcValue "/proc/sys/net/core/netdev_max_backlog" 300000
+checkProcValue "/proc/sys/net/core/somaxconn" 4096
 
 echo
 echo -----------------------------------
