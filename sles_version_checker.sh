@@ -3,7 +3,7 @@
 FNIC_GOLDEN_VERSION="1.6.0.27"
 ENIC_GOLDEN_VERSION="2.3.0.30"
 KERNEL_GOLDEN_VERSION="3.12.49-11-default"
-VERBOSE="1"
+VERBOSE="0"
 FAILURECNT=0
 
 function logInfo 
@@ -18,6 +18,24 @@ function logError
     ((FAILURECNT++))
     echo "ERROR! $1"
 }
+
+function init
+{
+    while getopts ":v" opt; do
+      case ${opt} in
+        v )
+          VERBOSE="1"
+          ;;
+        \? )
+          echo Usage: "$0" [options]
+          echo     -v      verbose
+          exit 0
+          ;;
+      esac
+    done
+}
+
+init $@
 
 VERSION=$(sudo modinfo fnic | grep -G "^version:" | awk -F:       '{print $2}')
 
