@@ -53,7 +53,7 @@ function checkProcValue
 
     value=$(cat $procPath)
     if [ "$value" != "$expected" ]; then
-        logError "Illegal value for $procPath.  Found: $value, Expected: $expected"
+        logError "Unexpected value for $procPath.  Found: $value, Expected: $expected"
     else
         logInfo "$procPath is set to $expected"
     fi
@@ -106,19 +106,15 @@ OUTPUT=$(awk -v verbose=$VERBOSE '
 echo "$OUTPUT"
 let FAILURECNT=FAILURECNT+$(echo "$OUTPUT" | grep "ERROR!" | wc -l)
 
-# Make sure NUMA_BALANCING is disabled in kernel cmdline
-checkKernelCmdLine "numa_balancing=disable"
-
-# Make sure transparent hugepages are disabled
-checkKernelCmdLine "transparent_hugepage=never"
-
 #Make sure max_cstate is set to 1
-checkKernelCmdLine "intel_idle.max_cstate=1"
-
-#Make sure page cache limit is set to 0 (default)
-checkProcValue "/proc/sys/vm/pagecache_limit_mb" 0
+checkProcValue "/sys/module/intel_idle/parameters/max_cstate" 1
 
 #Check a bunch of stuff from proc/sys
+checkProcValue "/proc/sys/kernel/numa_balancing" 0
+
+checkProcValue "/sys/kernel/mm/transparent_hugepage/enabled" "always madvise [never]"
+checkProcValue "/proc/sys/vm/pagecache_limit_mb" 0
+
 checkProcValue "/proc/sys/net/ipv4/tcp_slow_start_after_idle" 0
 checkProcValue "/proc/sys/net/ipv4/tcp_rmem" "65536 16777216 16777216"
 checkProcValue "/proc/sys/net/ipv4/tcp_wmem" "65536 16777216 16777216"
