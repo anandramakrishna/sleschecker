@@ -5,6 +5,7 @@ ENIC_GOLDEN_VERSION="2.3.0.30"
 KERNEL_GOLDEN_VERSION="3.12.49-11-default"
 VERBOSE="0"
 FAILURECNT=0
+LOCATION=""
 
 function logInfo 
 {
@@ -21,18 +22,35 @@ function logError
 
 function init
 {
-    while getopts ":v" opt; do
+    while getopts ":vl:" opt; do
       case ${opt} in
         v )
           VERBOSE="1"
           ;;
+        l )
+          LOCATION="$OPTARG"
+          if [ "$LOCATION" != "westus" -a "$LOCATION" != "eastus" ]; then
+              echo "Invalid location '$LOCATION' specified.  "
+              exit 1
+          fi
+          ;;
+        : )
+          echo Invalid option $OPTARG
+          exit 1
+          ;;
         \? )
           echo Usage: "$0" [options]
-          echo     -v      verbose
-          exit 0
+          echo "    -v              verbose"
+          echo "    -l <location>.  Must be westus or eastus."
+          exit 1
           ;;
       esac
     done
+
+    if [ -z "$LOCATION" ]; then
+        echo Location unspecified.  -l is a required parameter.
+        exit 1
+    fi
 }
 
 function checkKernelCmdLine
@@ -52,14 +70,36 @@ function checkProcValue
     expected=$2
 
     value=$(cat $procPath)
+    checkValue "$value" "$expected" "$procPath"
+}
+
+function checkValue
+{
+    value=$1
+    expected=$2
+    type=$3
+
     if [ "$value" != "$expected" ]; then
-        logError "Unexpected value for $procPath.  Found: $value, Expected: $expected"
+        logError "Unexpected value for $type.  Found: $value, Expected: $expected"
     else
         logInfo "$procPath is set to $expected"
     fi
 }
 
 init $@
+
+logInfo "Location set to $LOCATION"
+
+DATE=$(date +"%Z")
+case $LOCATION in
+  westus )
+    checkValue $DATE "PST" "timezone"
+    ;;
+  eastus )
+    checkValue $DATE "EST" "timezone"
+    ;;
+esac
+
 
 VERSION=$(sudo modinfo fnic | grep -G "^version:" | awk -F:       '{print $2}')
 
