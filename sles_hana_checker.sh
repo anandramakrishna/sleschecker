@@ -6,6 +6,9 @@ KERNEL_GOLDEN_VERSION="3.12.49-11-default"
 VERBOSE="0"
 FAILURECNT=0
 LOCATION=""
+NFS_GW=""
+USERNAME=""
+SID=""
 
 function logInfo 
 {
@@ -20,6 +23,17 @@ function logError
     echo "ERROR! $1"
 }
 
+function displayUsage
+{
+    echo
+    echo Usage: "$0" [options]
+    echo "    -v              verbose"
+    echo "    -l <location>.  Must be westus or eastus."
+#    echo "    -n <nfs gw>     FQDN or IP Address of nfs gateway"
+#    echo "    -u <username>   Username"
+#    echo "    -s <sid>        SID"
+}
+
 function init
 {
     while getopts ":vl:" opt; do
@@ -31,26 +45,52 @@ function init
           LOCATION="$OPTARG"
           if [ "$LOCATION" != "westus" -a "$LOCATION" != "eastus" ]; then
               echo "Invalid location '$LOCATION' specified.  "
+              displayUsage
               exit 1
           fi
           ;;
+        n )
+          NFS_GW="$OPTARG"
+          ;;
+        u )
+          USERNAME="$OPTARG"
+          ;;
+        s )
+          SID="$OPTARG"
+          ;;
         : )
-          echo Invalid option $OPTARG
+          echo "Required value for -$OPTARG missing."
+          displayUsage
           exit 1
           ;;
         \? )
-          echo Usage: "$0" [options]
-          echo "    -v              verbose"
-          echo "    -l <location>.  Must be westus or eastus."
+          displayUsage
           exit 1
           ;;
       esac
     done
 
     if [ -z "$LOCATION" ]; then
-        echo Location unspecified.  -l is a required parameter.
+        echo "Location unspecified.  -l is a required parameter."
+        displayUsage
         exit 1
     fi
+#    if [ -z "$NFS_GW" ]; then
+#        echo "NFS Gateway unspecified.  -n is a required parameter."
+#        displayUsage
+#        exit 1
+#    fi
+#    if [ -z "$USERNAME" ]; then
+#        echo "Username unspecified.  -u is a required parameter."
+#        displayUsage
+#        exit 1
+#    fi
+#    if [ -z "$SID" ]; then
+#        echo "SID unspecified.  -s is a required parameter."
+#        displayUsage
+#        exit 1
+#    fi
+
 }
 
 function checkKernelCmdLine
@@ -88,7 +128,10 @@ function checkValue
 
 init $@
 
-logInfo "Location set to $LOCATION"
+logInfo "Location set to: $LOCATION"
+#logInfo "NFS GW set to: $NFS_GW"
+#logInfo "Username set to: $USERNAME"
+#logInfo "SID set to: $SID"
 
 DATE=$(date +"%Z")
 case $LOCATION in
@@ -137,7 +180,11 @@ OUTPUT=$(awk -v verbose=$VERBOSE '
             print "INFO: "$1, " in fstab mounted by uuid"
         }
     }
-    else 
+    else if ($3 ~ /nfs/)
+    {
+        print "INFO: "$1, " in fstab mounted by nfs"
+    }
+    else
     {
         print "ERROR! Disk ", $1, " in fstab not mounted by uuid."
     }
