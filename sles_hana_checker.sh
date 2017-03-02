@@ -199,28 +199,28 @@ checkProcValue "/sys/module/intel_idle/parameters/max_cstate" 1
 #Check a bunch of stuff from proc/sys
 checkProcValue "/proc/sys/kernel/numa_balancing" 0
 
-checkProcValue "/sys/kernel/mm/transparent_hugepage/enabled" "always madvise [never]"
+#checkProcValue "/sys/kernel/mm/transparent_hugepage/enabled" "always madvise [never]"
 checkProcValue "/proc/sys/vm/pagecache_limit_mb" 0
 
-checkProcValue "/proc/sys/net/ipv4/tcp_slow_start_after_idle" 0
-checkProcValue "/proc/sys/net/ipv4/tcp_rmem" "65536 16777216 16777216"
-checkProcValue "/proc/sys/net/ipv4/tcp_wmem" "65536 16777216 16777216"
-checkProcValue "/proc/sys/net/ipv4/tcp_no_metrics_save" 1
+#checkProcValue "/proc/sys/net/ipv4/tcp_slow_start_after_idle" 0
+#checkProcValue "/proc/sys/net/ipv4/tcp_rmem" "65536 16777216 16777216"
+#checkProcValue "/proc/sys/net/ipv4/tcp_wmem" "65536 16777216 16777216"
+#checkProcValue "/proc/sys/net/ipv4/tcp_no_metrics_save" 1
 checkProcValue "/proc/sys/net/ipv4/tcp_moderate_rcvbuf" 1
 checkProcValue "/proc/sys/net/ipv4/tcp_window_scaling" 1
 checkProcValue "/proc/sys/net/ipv4/tcp_timestamps" 1
 checkProcValue "/proc/sys/net/ipv4/tcp_sack" 1
-checkProcValue "/proc/sys/net/ipv4/tcp_max_syn_backlog" 8192
+#checkProcValue "/proc/sys/net/ipv4/tcp_max_syn_backlog" 8192
 
-checkProcValue "/proc/sys/sunrpc/tcp_slot_table_entries" 128
+#checkProcValue "/proc/sys/sunrpc/tcp_slot_table_entries" 128
 
-checkProcValue "/proc/sys/net/core/rmem_max" 16777216
-checkProcValue "/proc/sys/net/core/wmem_max" 16777216
-checkProcValue "/proc/sys/net/core/rmem_default" 16777216
-checkProcValue "/proc/sys/net/core/wmem_default" 16777216
-checkProcValue "/proc/sys/net/core/optmem_max" 16777216
-checkProcValue "/proc/sys/net/core/netdev_max_backlog" 300000
-checkProcValue "/proc/sys/net/core/somaxconn" 4096
+#checkProcValue "/proc/sys/net/core/rmem_max" 16777216
+#checkProcValue "/proc/sys/net/core/wmem_max" 16777216
+#checkProcValue "/proc/sys/net/core/rmem_default" 16777216
+#checkProcValue "/proc/sys/net/core/wmem_default" 16777216
+#checkProcValue "/proc/sys/net/core/optmem_max" 16777216
+#checkProcValue "/proc/sys/net/core/netdev_max_backlog" 300000
+#checkProcValue "/proc/sys/net/core/somaxconn" 4096
 
 echo
 echo -----------------------------------
