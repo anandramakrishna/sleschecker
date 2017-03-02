@@ -9,6 +9,7 @@ LOCATION=""
 NFS_GW=""
 USERNAME=""
 SID=""
+EXTENDED_MODE=0
 
 function logInfo 
 {
@@ -29,6 +30,7 @@ function displayUsage
     echo Usage: "$0" [options]
     echo "    -v              verbose"
     echo "    -l <location>.  Must be westus or eastus."
+    echo "    -x              Expanded mode - checks for additional things beyond basics."
 #    echo "    -n <nfs gw>     FQDN or IP Address of nfs gateway"
 #    echo "    -u <username>   Username"
 #    echo "    -s <sid>        SID"
@@ -36,7 +38,7 @@ function displayUsage
 
 function init
 {
-    while getopts ":vl:" opt; do
+    while getopts ":vl:x" opt; do
       case ${opt} in
         v )
           VERBOSE="1"
@@ -57,6 +59,9 @@ function init
           ;;
         s )
           SID="$OPTARG"
+          ;;
+        x )
+          EXTENDED_MODE=1
           ;;
         : )
           echo "Required value for -$OPTARG missing."
@@ -129,6 +134,7 @@ function checkValue
 init $@
 
 logInfo "Location set to: $LOCATION"
+logInfo "Extended mode set to: $EXTENDED_MODE"
 #logInfo "NFS GW set to: $NFS_GW"
 #logInfo "Username set to: $USERNAME"
 #logInfo "SID set to: $SID"
@@ -199,28 +205,33 @@ checkProcValue "/sys/module/intel_idle/parameters/max_cstate" 1
 #Check a bunch of stuff from proc/sys
 checkProcValue "/proc/sys/kernel/numa_balancing" 0
 
-#checkProcValue "/sys/kernel/mm/transparent_hugepage/enabled" "always madvise [never]"
 checkProcValue "/proc/sys/vm/pagecache_limit_mb" 0
 
-#checkProcValue "/proc/sys/net/ipv4/tcp_slow_start_after_idle" 0
-#checkProcValue "/proc/sys/net/ipv4/tcp_rmem" "65536 16777216 16777216"
-#checkProcValue "/proc/sys/net/ipv4/tcp_wmem" "65536 16777216 16777216"
-#checkProcValue "/proc/sys/net/ipv4/tcp_no_metrics_save" 1
 checkProcValue "/proc/sys/net/ipv4/tcp_moderate_rcvbuf" 1
 checkProcValue "/proc/sys/net/ipv4/tcp_window_scaling" 1
 checkProcValue "/proc/sys/net/ipv4/tcp_timestamps" 1
 checkProcValue "/proc/sys/net/ipv4/tcp_sack" 1
-#checkProcValue "/proc/sys/net/ipv4/tcp_max_syn_backlog" 8192
 
-#checkProcValue "/proc/sys/sunrpc/tcp_slot_table_entries" 128
+if [ $EXTENDED_MODE -ne 0 ]; then
+    checkProcValue "/sys/kernel/mm/transparent_hugepage/enabled" "always madvise [never]"
 
-#checkProcValue "/proc/sys/net/core/rmem_max" 16777216
-#checkProcValue "/proc/sys/net/core/wmem_max" 16777216
-#checkProcValue "/proc/sys/net/core/rmem_default" 16777216
-#checkProcValue "/proc/sys/net/core/wmem_default" 16777216
-#checkProcValue "/proc/sys/net/core/optmem_max" 16777216
-#checkProcValue "/proc/sys/net/core/netdev_max_backlog" 300000
-#checkProcValue "/proc/sys/net/core/somaxconn" 4096
+    checkProcValue "/proc/sys/net/ipv4/tcp_slow_start_after_idle" 0
+    checkProcValue "/proc/sys/net/ipv4/tcp_rmem" "65536 16777216 16777216"
+    checkProcValue "/proc/sys/net/ipv4/tcp_wmem" "65536 16777216 16777216"
+    checkProcValue "/proc/sys/net/ipv4/tcp_no_metrics_save" 1
+
+    checkProcValue "/proc/sys/net/ipv4/tcp_max_syn_backlog" 8192
+
+    checkProcValue "/proc/sys/sunrpc/tcp_slot_table_entries" 128
+
+    checkProcValue "/proc/sys/net/core/rmem_max" 16777216
+    checkProcValue "/proc/sys/net/core/wmem_max" 16777216
+    checkProcValue "/proc/sys/net/core/rmem_default" 16777216
+    checkProcValue "/proc/sys/net/core/wmem_default" 16777216
+    checkProcValue "/proc/sys/net/core/optmem_max" 16777216
+    checkProcValue "/proc/sys/net/core/netdev_max_backlog" 300000
+    checkProcValue "/proc/sys/net/core/somaxconn" 4096
+fi
 
 echo
 echo -----------------------------------
