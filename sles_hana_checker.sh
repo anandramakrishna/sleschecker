@@ -10,8 +10,8 @@ NFS_GW=""
 USERNAME=""
 SID=""
 EXTENDED_MODE=0
-#FSTAB_LOCATION="/etc/fstab"
-FSTAB_LOCATION="fstab.test"
+FSTAB_LOCATION="/etc/fstab"
+#FSTAB_LOCATION="fstab.test"
 
 function logInfo 
 {
