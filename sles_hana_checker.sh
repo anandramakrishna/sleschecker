@@ -10,6 +10,8 @@ NFS_GW=""
 USERNAME=""
 SID=""
 EXTENDED_MODE=0
+#FSTAB_LOCATION="/etc/fstab"
+FSTAB_LOCATION="fstab.test"
 
 function logInfo 
 {
@@ -178,7 +180,10 @@ fi
 # non-deterministic
 
 OUTPUT=$(awk -v verbose=$VERBOSE '
-{ 
+function ltrim(s) { sub(/^[ \t\r\n]+/, "", s); return s } 
+function rtrim(s) { sub(/[ \t\r\n]+$/, "", s); return s } 
+function trim(s)  { return rtrim(ltrim(s)); } 
+{
     if ($1 ~ /uuid|UUID/)
     {
         if (verbose == "1")
@@ -192,10 +197,23 @@ OUTPUT=$(awk -v verbose=$VERBOSE '
     }
     else
     {
-        print "ERROR! Disk ", $1, " in fstab not mounted by uuid."
+        # exclude blank lines and comments
+        firstRecord = trim($1)
+        if (firstRecord == "")
+        {
+            print "INFO: Skipping empty line"
+        }
+        else if  (firstRecord ~ /^#/)
+        {
+            print "INFO: Skipping comment"
+        }
+        else
+        {
+            print "ERROR! Disk ", $1, " in fstab not mounted by uuid."
+        }
     }
 }
-' < /etc/fstab)
+' < $FSTAB_LOCATION)
 echo "$OUTPUT"
 let FAILURECNT=FAILURECNT+$(echo "$OUTPUT" | grep "ERROR!" | wc -l)
 
